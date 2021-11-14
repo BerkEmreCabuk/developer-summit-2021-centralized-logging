@@ -35,11 +35,14 @@ namespace DeveloperSummit.LogConsumer
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
+                channel.ExchangeDeclare("LoggerQueue", ExchangeType.Fanout, true, false);
                 channel.QueueDeclare(queue: "LoggerQueue",
                                      durable: true,
                                      exclusive: false,
                                      autoDelete: false,
                                      arguments: null);
+                channel.QueueBind("LoggerQueue", "LoggerQueue", "");
+                channel.BasicQos(0, (ushort)Environment.ProcessorCount, false);
 
                 var consumer = new AsyncEventingBasicConsumer(channel);
                 consumer.Received += async (model, ea) =>
